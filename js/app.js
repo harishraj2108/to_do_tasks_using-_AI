@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initAIAssistant();
+  setupProfileModal();
 });
 
 // AI Assistant Chat & Speech Input logic
@@ -393,4 +394,133 @@ function initAIAssistant() {
       container.scrollTop = container.scrollHeight;
     }
   };
+}
+
+function setupProfileModal() {
+  const profileCard = document.querySelector('.user-profile');
+  if (!profileCard) return;
+
+  profileCard.style.cursor = 'pointer';
+  profileCard.title = 'View profile details';
+  
+  profileCard.addEventListener('mouseenter', () => {
+    profileCard.style.background = 'rgba(255, 255, 255, 0.05)';
+  });
+  profileCard.addEventListener('mouseleave', () => {
+    profileCard.style.background = 'transparent';
+  });
+
+  profileCard.addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/profile');
+      if (!res.ok) {
+        window.showToast("Failed to fetch profile details.", "error");
+        return;
+      }
+      const data = await res.json();
+      if (data.success) {
+        showProfileModal(data.user);
+      }
+    } catch (err) {
+      window.showToast("Network error loading profile.", "error");
+    }
+  });
+}
+
+function showProfileModal(user) {
+  let modal = document.getElementById('profile-details-modal');
+  if (modal) modal.remove();
+
+  modal = document.createElement('div');
+  modal.id = 'profile-details-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(2, 6, 23, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  `;
+
+  const initial = user.fullname ? user.fullname.charAt(0).toUpperCase() : 'U';
+
+  modal.innerHTML = `
+    <div class="glass-card" style="
+      width: 100%;
+      max-width: 400px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      position: relative;
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      border: 1px solid var(--border-light);
+    ">
+      <button id="profile-modal-close" style="
+        position: absolute;
+        top: 1rem;
+        right: 1.25rem;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        cursor: pointer;
+      ">✕</button>
+
+      <div style="
+        width: 4.5rem;
+        height: 4.5rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #fff;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+      ">${initial}</div>
+
+      <h2 style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.3rem; color: #fff; margin-bottom: 0.25rem; line-height: 1.2;">
+        ${user.fullname}
+      </h2>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 2rem;">
+        ${user.email}
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <a href="/logout" class="btn btn-primary" style="justify-content: center; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); color: #fca5a5;">
+          Log Out Account
+        </a>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  setTimeout(() => {
+    modal.style.opacity = '1';
+    modal.querySelector('.glass-card').style.transform = 'translateY(0)';
+  }, 50);
+
+  const closeModal = () => {
+    modal.style.opacity = '0';
+    modal.querySelector('.glass-card').style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      modal.remove();
+    }, 300);
+  };
+
+  modal.querySelector('#profile-modal-close').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
 }

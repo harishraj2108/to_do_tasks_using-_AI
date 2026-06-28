@@ -412,6 +412,26 @@ app.delete('/api/chat', async (req, res) => {
   }
 });
 
+app.get('/api/profile', async (req, res) => {
+  try {
+    if (!req.session?.userid) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    const user = await login_auth.findById(req.session.userid).select('fullname email').lean();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error("Error fetching profile details:", err);
+    res.status(500).json({ error: 'Failed to retrieve profile details.' });
+  }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/');
+  });
+});
+
 app.get('/api/habits', async (req, res) => {
   try {
     if (req.session?.userid) {
