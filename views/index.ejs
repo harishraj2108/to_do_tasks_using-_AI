@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aegis AI is a proactive productivity companion that prioritizes tasks, auto-blocks calendar schedules, tracks habits, and features customized deep work environments with synthesized sound waves." />
+  <title>Aegis AI - Proactive Productivity Companion</title>
+  <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <script src="/js/app.js" defer></script>
+  <script src="/js/dashboard.js" defer></script>
+</head>
+<body>
+  <div class="app-container">
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div>
+        <a href="/" class="logo-section">
+          <div class="logo-icon">A</div>
+          <span class="logo-text">Aegis AI</span>
+        </a>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="/" class="nav-item active">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="10" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg>
+              <span>Dashboard</span>
+            </a></li>
+            <li><a href="/calendar" class="nav-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /></svg>
+              <span>Time Blocking</span>
+            </a></li>
+            <li><a href="/deepwork" class="nav-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polygon points="10 8 16 12 10 16 10 8" /></svg>
+              <span>Deep Work</span>
+            </a></li>
+            <li><a href="/habits" class="nav-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="m9 12 2 2 4-4" /></svg>
+              <span>Habit Tracker</span>
+            </a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="avatar"><%= userEmail ? userEmail.split('@')[0].charAt(0).toUpperCase() : 'U' %></div>
+          <div class="user-info">
+            <p><%= userEmail ? userEmail.split('@')[0] : 'Guest User' %></p>
+            <span>Focus Mode Active</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <header class="app-header">
+        <div class="header-title-section">
+          <h1>Productivity Command</h1>
+          <p>AI-driven task analysis and focus scoring</p>
+        </div>
+        <div class="header-status-section">
+          <div class="energy-controller">
+            <span>Energy State:</span>
+            <div class="energy-buttons" id="energy-btns">
+              <button class="energy-btn" data-level="1">1</button>
+              <button class="energy-btn" data-level="2">2</button>
+              <button class="energy-btn" data-level="3">3</button>
+              <button class="energy-btn" data-level="4">4</button>
+              <button class="energy-btn" data-level="5">5</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- AI Action Recommendation Card -->
+      <div class="glass-card ai-recommendation-card" id="rec-card">
+        <div class="recommendation-icon">💡</div>
+        <div class="recommendation-content" style="flex: 1;">
+          <h4 id="rec-title">Analyzing workspace...</h4>
+          <p id="rec-desc">Calculating focus score schedules to optimize recommendations.</p>
+        </div>
+        <a href="/deepwork" class="btn btn-primary" id="rec-action-btn" style="display: none;">
+          Start Focus Block
+        </a>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Left Column: Tasks Feed -->
+        <div class="dashboard-left">
+          <div class="stats-bar">
+            <div class="glass-card stat-card">
+              <span class="stat-label">Tasks Pending</span>
+              <span class="stat-value" id="stats-pending">-</span>
+            </div>
+            <div class="glass-card stat-card">
+              <span class="stat-label">Focus Score Rate</span>
+              <span class="stat-value text-cyan" id="stats-rate">-%</span>
+            </div>
+            <div class="glass-card stat-card">
+              <span class="stat-label">Tasks Finished</span>
+              <span class="stat-value text-green" id="stats-finished">-</span>
+            </div>
+          </div>
+
+          <div class="glass-card tasks-container">
+            <div class="card-header">
+              <h2 class="card-title">Priority Task Feed</h2>
+              <span style="font-size: 0.75rem; color: var(--text-secondary);">
+                Sorted by dynamic Focus Score
+              </span>
+            </div>
+            <div class="task-list" id="task-feed-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Add Task Card -->
+        <div class="dashboard-right">
+          <div class="glass-card" style="height: 100%;">
+            <h3 class="card-title" style="margin-bottom: 1.25rem;">Add Task</h3>
+            <form class="quick-add-form" id="add-task-form">
+              <div class="form-group">
+                <label for="task-title-input">Task Title</label>
+                <input
+                  type="text"
+                  id="task-title-input"
+                  placeholder="e.g. Write report, Fix login bug"
+                  class="form-input"
+                  required
+                />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="task-category-select">Category</label>
+                  <select id="task-category-select" class="form-input">
+                    <option value="Work">Work</option>
+                    <option value="Coding">Coding</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Admin">study</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="task-deadline-input">Deadline (Days)</label>
+                  <input
+                    type="number"
+                    id="task-deadline-input"
+                    min="1"
+                    max="30"
+                    value="1"
+                    class="form-input"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="task-duration-input">Duration (Hours)</label>
+                  <input
+                    type="number"
+                    id="task-duration-input"
+                    step="0.5"
+                    min="0.5"
+                    max="8"
+                    value="1"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="task-energy-input">Energy Cost (1-5)</label>
+                  <input
+                    type="number"
+                    id="task-energy-input"
+                    min="1"
+                    max="5"
+                    value="3"
+                    class="form-input"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-group" style="margin: 0.25rem 0;">
+                <label>Priority Importance</label>
+                <div style="display: flex; gap: 0.25rem; marginTop: 0.25rem;" id="priority-btn-group">
+                  <button type="button" class="btn" data-priority="1">1</button>
+                  <button type="button" class="btn" data-priority="2">2</button>
+                  <button type="button" class="btn active" data-priority="3">3</button>
+                  <button type="button" class="btn" data-priority="4">4</button>
+                  <button type="button" class="btn" data-priority="5">5</button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center;">
+                Create Task & Score
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Floating AI voice assistant overlay and side-panel -->
+    <button class="ai-toggle-floating" id="ai-toggle-btn" title="Ask Aegis AI">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+        <line x1="12" x2="12" y1="19" y2="22" />
+      </svg>
+    </button>
+
+    <div class="ai-assistant-panel" id="ai-panel">
+      <div class="ai-header">
+        <div class="ai-header-title">
+          <span class="pulse-indicator"></span>
+          <span>Aegis Assistant</span>
+        </div>
+        <button style="background: transparent; border: none; cursor: pointer; font-size: 1.2rem; color: var(--text-secondary);" id="ai-panel-close-btn">
+          ✕
+        </button>
+      </div>
+
+      <div class="ai-body" id="ai-messages-container">
+        <!-- AI chats go here -->
+      </div>
+
+      <div class="ai-footer">
+        <button class="mic-btn" id="ai-mic-btn" title="Speak a command">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" x2="12" y1="19" y2="22" />
+          </svg>
+        </button>
+        <form class="chat-input-wrapper" id="ai-chat-form">
+          <input
+            type="text"
+            id="ai-chat-input"
+            class="chat-input"
+            placeholder="e.g. Schedule my tasks today..."
+          />
+          <button type="submit" class="send-btn">➔</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Create a new Aegis AI account - Your Proactive Productivity Companion." />
+  <title>Aegis AI - Create Account</title>
+  <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <style>
+    .signup-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+    
+    .signup-card {
+      width: 100%;
+      max-width: 460px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      animation: cardFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      margin: 2rem 0;
+    }
+    
+    @keyframes cardFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .signup-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      text-decoration: none;
+    }
+    
+    .signup-logo .logo-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      font-size: 1.4rem;
+      border-radius: 0.6rem;
+    }
+    
+    .signup-logo .logo-text {
+      font-size: 1.6rem;
+    }
+    
+    .signup-header {
+      margin-bottom: 1.5rem;
+    }
+    
+    .signup-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.25rem;
+    }
+    
+    .signup-header p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    
+    .error-banner {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-left: 4px solid var(--accent-red);
+      color: #fca5a5;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      text-align: left;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      animation: bannerSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes bannerSlideIn {
+      from { transform: scaleY(0.8); opacity: 0; }
+      to { transform: scaleY(1); opacity: 1; }
+    }
+    
+    .signup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      text-align: left;
+    }
+    
+    .form-group label {
+      margin-bottom: 0.4rem;
+    }
+    
+    .form-options {
+      display: flex;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.1rem;
+    }
+    
+    .checkbox-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      cursor: pointer;
+      line-height: 1.4;
+    }
+    
+    .checkbox-label input[type="checkbox"] {
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+      margin-top: 0.15rem;
+    }
+    
+    .terms-link {
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+    
+    .terms-link:hover {
+      text-shadow: var(--glow-cyan);
+    }
+    
+    .login-prompt {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    
+    .login-prompt a {
+      color: var(--accent-indigo);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+    
+    .login-prompt a:hover {
+      color: var(--accent-cyan);
+    }
+
+    .password-match-error {
+      color: #fca5a5;
+      font-size: 0.75rem;
+      margin-top: 0.35rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container" style="overflow-y: auto;">
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
+    <div class="signup-container">
+      <div class="glass-card signup-card">
+        <!-- Logo Header -->
+        <div class="signup-logo">
+          <div class="logo-icon">A</div>
+          <span class="logo-text">Aegis AI</span>
+        </div>
+
+        <div class="signup-header">
+          <h2>Create Account</h2>
+          <p>Establish your behavioral productivity loops today</p>
+        </div>
+
+        <!-- Dynamic Server-side Register Error Banner -->
+        <% if (error) { %>
+          <div class="error-banner">
+            <span>⚠️</span>
+            <span><%= error %></span>
+          </div>
+        <% } %>
+        <% if (success) { %>
+  <div class="toast toast--success">
+    <i class="fas fa-circle-check"></i>
+    <span><%= success %></span>
+  </div>
+<% } %>
+        <!-- Sign Up Form -->
+        <form action="/signup" method="POST" class="signup-form">
+          <div class="form-group">
+            <label for="fullname">Full Name</label>
+            <input 
+              type="text" 
+              name="fullname" 
+              id="fullname" 
+              placeholder="e.g. firstname lastname" 
+              class="form-input" 
+              required
+              value="<%= typeof fullname !== 'undefined' ? fullname : '' %>"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input 
+              type="email" 
+              name="email" 
+              id="email" 
+              placeholder="e.g. you@domain.com" 
+              class="form-input" 
+              required
+              value="<%= typeof email !== 'undefined' ? email : '' %>"
+            />
+          </div>
+
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input 
+                type="password" 
+                name="password" 
+                id="password" 
+                placeholder="••••••••" 
+                class="form-input" 
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="confirm_password">Confirm Password</label>
+              <input 
+                type="password" 
+                name="confirm_password" 
+                id="confirm_password" 
+                placeholder="••••••••" 
+                class="form-input" 
+                required
+              />
+              <div id="password-match-error" class="password-match-error">Passwords do not match.</div>
+            </div>
+          </div>
+
+          <div class="form-options">
+            <label class="checkbox-label">
+              <input type="checkbox" name="agree" id="agree" required>
+              <span>I accept the <a href="#" class="terms-link">Terms of Service</a> & <a href="#" class="terms-link">Privacy Policy</a></span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem; justify-content: center;">
+            Create Account
+          </button>
+        </form>
+
+        <div class="login-prompt">
+          Already have an account? <a href="/login">Log In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function validatePasswordMatch() {
+      const password = document.getElementById('password');
+      const confirmPassword = document.getElementById('confirm_password');
+      const errorBox = document.getElementById('password-match-error');
+
+      if (!password || !confirmPassword || !errorBox) return true;
+
+      const isMatch = password.value === confirmPassword.value;
+      errorBox.style.display = isMatch ? 'none' : 'block';
+      return isMatch;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.querySelector('.signup-form');
+      const password = document.getElementById('password');
+      const confirmPassword = document.getElementById('confirm_password');
+
+      if (!form || !password || !confirmPassword) return;
+
+      [password, confirmPassword].forEach(input => {
+        input.addEventListener('input', validatePasswordMatch);
+      });
+
+      form.addEventListener('submit', (event) => {
+        if (!validatePasswordMatch()) {
+          event.preventDefault();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
