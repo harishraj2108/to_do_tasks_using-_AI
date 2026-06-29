@@ -534,6 +534,12 @@ app.post('/api/habits', async (req, res) => {
   }
 });
 
+const safeToISOString = (val) => {
+  if (!val) return null;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+};
+
 app.get('/api/tasks', async (req, res) => {
   try {
     if (req.session?.userid) {
@@ -544,7 +550,7 @@ app.get('/api/tasks', async (req, res) => {
         priority: task.priority,
         duration: task.duration,
         energy: task.energy,
-        deadline: task.deadline ? task.deadline.toISOString() : null,
+        deadline: safeToISOString(task.deadline),
         category: task.category,
         completed: task.completed,
         subtasks: task.subtasks || []
@@ -554,7 +560,11 @@ app.get('/api/tasks', async (req, res) => {
     res.json(readTasks());
   } catch (error) {
     console.error('Error fetching tasks:', error);
-    res.status(500).json({ error: 'Failed to read tasks data.' });
+    res.status(500).json({ 
+      error: 'Failed to read tasks data.',
+      details: error.message,
+      stack: error.stack
+    });
   }
 });
 
