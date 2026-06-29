@@ -121,10 +121,11 @@ window.api = {
     return res.json();
   },
   sendChatMessage: async (message) => {
+    const localDate = new Date().toISOString().split('T')[0];
     const res = await fetch(`${API_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ message, localDate })
     });
     return res.json();
   },
@@ -382,6 +383,11 @@ function initAIAssistant() {
           setTimeout(() => {
             window.location.href = '/habits';
           }, 1000);
+        }
+        else if (type === 'add_schedule') {
+          window.showToast(`Calendar block "${data.title}" scheduled successfully.`, "success");
+          if (window.loadCalendar) window.loadCalendar();
+          if (window.loadDashboard) window.loadDashboard();
         }
       }
     } catch (e) {

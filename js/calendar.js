@@ -1,18 +1,44 @@
 // Aegis AI Calendar / Time-Blocking Scripts
 
+let currentNavDate = new Date(); // Tracks month/year displayed on the monthly calendar
+let currentSelectedDate = new Date().toISOString().split('T')[0]; // Tracks active daily date (YYYY-MM-DD)
+
 window.loadCalendar = async () => {
   try {
     const tasks = await window.api.getTasks();
     const schedule = await window.api.getSchedule();
 
-    // 1. Render Calendar Rows
+    // 1. Render Month Calendar
+    renderMonthCalendar(schedule);
+
+    // Update Header Date Label to display active date
+    const headerP = document.querySelector('.header-title-section p');
+    if (headerP) {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const displayDate = new Date(currentSelectedDate + 'T00:00:00').toLocaleDateString('en-US', options);
+      headerP.textContent = `Schedule details for ${displayDate}`;
+    }
+
+    // 2. Render Calendar Rows (24-Hour Cycle)
     const gridBody = document.getElementById('calendar-grid-body');
     gridBody.innerHTML = '';
 
     const timeSlots = [];
-    for (let h = 8; h <= 19.5; h += 0.5) {
+    for (let h = 0; h < 24; h += 0.5) {
       timeSlots.push(h);
     }
+
+    // Filter schedule blocks specifically for the selected date
+    const dailyBlocks = schedule.filter(b => b.date === currentSelectedDate);
+
+    // Overlap helper: returns all blocks overlapping with blockA
+    const getOverlappingBlocks = (blockA, list) => {
+      return list.filter(blockB => {
+        const endA = blockA.startHour + blockA.duration;
+        const endB = blockB.startHour + blockB.duration;
+        return blockA.startHour < endB && endA > blockB.startHour;
+      });
+    };
 
     timeSlots.forEach(slot => {
       const row = document.createElement('div');
@@ -27,40 +53,51 @@ window.loadCalendar = async () => {
       content.className = 'time-slot-content';
       row.appendChild(content);
 
-      // Check if slot matches the start of any scheduled block
-      const activePrimaryBlock = schedule.find(b => slot >= b.startHour && slot < b.startHour + b.duration);
-      if (activePrimaryBlock && slot === activePrimaryBlock.startHour) {
+      // Render blocks starting exactly at this half-hour slot
+      const startingBlocks = dailyBlocks.filter(b => b.startHour === slot);
+      
+      startingBlocks.forEach(b => {
         const block = document.createElement('div');
-        block.className = `scheduled-block ${activePrimaryBlock.category?.toLowerCase() || 'work'} ${activePrimaryBlock.locked ? 'locked' : ''}`;
         
-        // Calculate height: duration * 2 slots * 3.5rem per row - padding adjustment
-        block.style.height = `${activePrimaryBlock.duration * 2 * 3.5 - 0.5}rem`;
+        // Dynamic overlap alignment math
+        const group = getOverlappingBlocks(b, dailyBlocks).sort((x, y) => x.startHour - y.startHour || x.id.localeCompare(y.id));
+        const N = group.length;
+        const index = group.findIndex(x => x.id === b.id);
+        const isCoinciding = N > 1;
+        
+        block.className = `scheduled-block ${b.category?.toLowerCase() || 'work'} ${b.locked ? 'locked' : ''} ${isCoinciding ? 'coinciding' : ''}`;
+        
+        // Calculate height based on duration: duration * 2 rows * 3.5rem per row - padding adjustment
+        block.style.height = `${b.duration * 2 * 3.5 - 0.5}rem`;
         block.style.position = 'absolute';
         block.style.top = '0.25rem';
-        block.style.left = '0.25rem';
-        block.style.right = '0.25rem';
+        block.style.left = `calc(${(index * 100) / N}% + 0.25rem)`;
+        block.style.right = `calc(${((N - 1 - index) * 100) / N}% + 0.25rem)`;
         block.style.zIndex = '2';
         block.style.minHeight = '2.5rem';
 
         block.innerHTML = `
-          <span class="block-title">${activePrimaryBlock.title}</span>
+          <span class="block-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 1.5rem); display: inline-block;">
+            ${isCoinciding ? '⚠️ ' : ''}${b.title}
+          </span>
           <div class="block-meta">
-            <span>${formatTime(activePrimaryBlock.startHour)} - ${formatTime(activePrimaryBlock.startHour + activePrimaryBlock.duration)}</span>
-            ${activePrimaryBlock.locked ? '<span>🔒 Locked</span>' : `
-              <button style="background: transparent; border: none; color: inherit; cursor: pointer; font-size: 0.85rem;" onclick="removeBlock('${activePrimaryBlock.id}')">✕</button>
+            <span>${formatTime(b.startHour)} - ${formatTime(b.startHour + b.duration)}</span>
+            ${b.locked ? '<span>🔒 Locked</span>' : `
+              <button style="background: transparent; border: none; color: inherit; cursor: pointer; font-size: 0.85rem;" onclick="removeBlock('${b.id}')">✕</button>
             `}
           </div>
         `;
         content.appendChild(block);
-      }
+      });
 
       gridBody.appendChild(row);
     });
 
-    // 2. Render Unscheduled Sidebar
+    // 3. Render Unscheduled Sidebar
     const unscheduledList = document.getElementById('unscheduled-task-list');
     unscheduledList.innerHTML = '';
 
+    // A task is scheduled if it has a block on ANY date
     const scheduledTaskIds = schedule.map(s => s.taskId).filter(Boolean);
     const unscheduled = tasks.filter(t => !t.completed && !scheduledTaskIds.includes(t.id));
 
@@ -90,7 +127,6 @@ window.loadCalendar = async () => {
         `;
 
         item.addEventListener('click', () => {
-          // Highlight selection
           unscheduledList.querySelectorAll('div').forEach(el => el.style.borderColor = 'var(--border-light)');
           item.style.borderColor = 'var(--accent-cyan)';
           revealManualForm(task);
@@ -101,16 +137,98 @@ window.loadCalendar = async () => {
     }
 
   } catch (e) {
+    console.error(e);
     window.showToast("Failed to fetch schedule logs.", "error");
   }
 };
 
-// Float hour to time string, e.g. 13.5 -> "1:30 PM"
+// Render Month Calendar Grid
+function renderMonthCalendar(schedule) {
+  const monthDaysGrid = document.getElementById('month-days-grid');
+  const monthYearLabel = document.getElementById('month-year-label');
+  if (!monthDaysGrid || !monthYearLabel) return;
+
+  monthDaysGrid.innerHTML = '';
+  
+  const year = currentNavDate.getFullYear();
+  const month = currentNavDate.getMonth();
+  
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  monthYearLabel.textContent = `${monthNames[month]} ${year}`;
+
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  // Empty cells padding
+  for (let i = 0; i < firstDayIndex; i++) {
+    const emptyCell = document.createElement('div');
+    monthDaysGrid.appendChild(emptyCell);
+  }
+
+  // Days rendering
+  for (let d = 1; d <= totalDays; d++) {
+    const dayCell = document.createElement('button');
+    dayCell.type = 'button';
+    dayCell.style.cssText = `
+      position: relative;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 0.75rem;
+    `;
+
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    dayCell.textContent = d;
+
+    if (dateStr === currentSelectedDate) {
+      dayCell.style.background = 'rgba(6, 182, 212, 0.2)';
+      dayCell.style.border = '1.5px solid var(--accent-cyan)';
+      dayCell.style.color = '#fff';
+      dayCell.style.fontWeight = '700';
+    } else {
+      dayCell.onmouseover = () => dayCell.style.background = 'rgba(255, 255, 255, 0.05)';
+      dayCell.onmouseout = () => dayCell.style.background = 'transparent';
+    }
+
+    // Check if this date has any schedules
+    const hasSchedules = schedule.some(b => b.date === dateStr);
+    if (hasSchedules) {
+      const redDot = document.createElement('span');
+      redDot.style.cssText = `
+        width: 4px;
+        height: 4px;
+        background: var(--accent-red);
+        border-radius: 50%;
+        position: absolute;
+        bottom: 3px;
+        left: 50%;
+        transform: translateX(-50%);
+      `;
+      dayCell.appendChild(redDot);
+    }
+
+    dayCell.addEventListener('click', () => {
+      currentSelectedDate = dateStr;
+      window.loadCalendar();
+    });
+
+    monthDaysGrid.appendChild(dayCell);
+  }
+}
+
+// Float hour to time string, e.g. 13.5 -> "1:30 PM", 0.0 -> "12:00 AM"
 function formatTime(hour) {
   const hh = Math.floor(hour);
   const mm = hour % 1 === 0.5 ? '30' : '00';
-  const ampm = hh >= 12 ? 'PM' : 'AM';
-  const displayHour = hh > 12 ? hh - 12 : hh === 0 ? 12 : hh;
+  const ampm = hh >= 24 ? 'AM' : hh >= 12 ? 'PM' : 'AM';
+  const displayHour = hh > 12 ? (hh > 24 ? hh - 24 : hh - 12) : hh === 0 ? 12 : hh;
   return `${displayHour}:${mm} ${ampm}`;
 }
 
@@ -126,8 +244,8 @@ function revealManualForm(task) {
   title.textContent = `Schedule: ${task.title}`;
   select.innerHTML = '';
 
-  // Generate selectable half-hourly start slots
-  for (let slot = 8; slot <= 20 - task.duration; slot += 0.5) {
+  // Generate selectable half-hourly start slots spanning the 24-hour cycle
+  for (let slot = 0; slot <= 24 - task.duration; slot += 0.5) {
     const opt = document.createElement('option');
     opt.value = slot;
     opt.textContent = formatTime(slot);
@@ -143,13 +261,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cancelBtn = document.getElementById('manual-form-cancel-btn');
   const form = document.getElementById('manual-schedule-form');
 
+  const prevBtn = document.getElementById('prev-month-btn');
+  const nextBtn = document.getElementById('next-month-btn');
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', async () => {
+      currentNavDate.setMonth(currentNavDate.getMonth() - 1);
+      const schedule = await window.api.getSchedule();
+      renderMonthCalendar(schedule);
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', async () => {
+      currentNavDate.setMonth(currentNavDate.getMonth() + 1);
+      const schedule = await window.api.getSchedule();
+      renderMonthCalendar(schedule);
+    });
+  }
+
   if (clearBtn) {
     clearBtn.addEventListener('click', async () => {
       try {
         const schedule = await window.api.getSchedule();
-        const cleaned = schedule.filter(s => s.locked);
+        // Clear only unlocked blocks on the selected date
+        const cleaned = schedule.filter(s => s.date !== currentSelectedDate || s.locked);
         await window.api.saveSchedule(cleaned);
-        window.showToast("Cleared all automated time blocks.", "info");
+        window.showToast("Cleared automated time blocks for this date.", "info");
         window.loadCalendar();
       } catch (err) {
         window.showToast("Error clearing blocks.", "error");
@@ -182,23 +320,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const startHour = parseFloat(document.getElementById('manual-time-select').value);
         const duration = task.duration;
-        const endHour = startHour + duration;
-
-        // Check scheduling overlaps
-        const isOccupied = schedule.some(event => {
-          const eventEnd = event.startHour + event.duration;
-          return startHour < eventEnd && endHour > event.startHour;
-        });
-
-        if (isOccupied) {
-          window.showToast("This block overlaps with an existing appointment.", "error");
-          return;
-        }
-
+        
+        // Add manual block for selected date
         const newBlock = {
           id: `manual-s-${Date.now()}`,
           taskId: task.id,
           title: task.title,
+          date: currentSelectedDate,
           startHour,
           duration,
           category: task.category,
@@ -219,18 +347,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Load calendar grid
   if (document.getElementById('calendar-grid-body')) {
     await window.loadCalendar();
     
     // Check if voice assistant initiated an auto-optimization redirect
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('optimize') === 'true') {
-      // Clean query parameter from address bar
       const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
       window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
-      
-      // Trigger optimizer
       setTimeout(() => {
         triggerAIAutoSchedule();
       }, 500);
@@ -251,34 +375,40 @@ window.removeBlock = async (id) => {
   }
 };
 
-// Scheduler optimization logic (identical to taskEngine helper)
+// Scheduler optimization logic for current date
 async function triggerAIAutoSchedule() {
   try {
     const tasks = await window.api.getTasks();
     const schedule = await window.api.getSchedule();
 
-    const uncompletedTasks = tasks.filter(t => !t.completed);
+    const energy = await window.api.getEnergy();
+
+    // Clear unlocked blocks on current date
+    const lockedEvents = schedule.filter(s => s.date !== currentSelectedDate || s.locked);
+    
+    // Uncompleted tasks not scheduled on any date
+    const scheduledTaskIds = lockedEvents.map(s => s.taskId).filter(Boolean);
+    const uncompletedTasks = tasks.filter(t => !t.completed && !scheduledTaskIds.includes(t.id));
+
     if (uncompletedTasks.length === 0) {
-      window.showToast("You have no uncompleted tasks to schedule.", "info");
+      window.showToast("No uncompleted tasks to schedule.", "info");
       return;
     }
 
-    const energy = await window.api.getEnergy();
-    const lockedEvents = schedule.filter(item => item.locked);
-    
-    // Sort uncompleted tasks by dynamic focus score
     const sortedTasks = uncompletedTasks
       .map(t => ({ ...t, focusScore: window.calculateFocusScore(t, energy) }))
       .sort((a, b) => b.focusScore - a.focusScore);
 
     const newSchedule = [...lockedEvents];
     const slotSize = 0.5;
-    const startDay = 8.0;
-    const endDay = 20.0;
+    const startDay = 0.0;
+    const endDay = 24.0;
 
     const isSlotOccupied = (start, duration) => {
       const end = start + duration;
+      // check overlap specifically on this date
       for (const event of newSchedule) {
+        if (event.date !== currentSelectedDate) continue;
         const eventEnd = event.startHour + event.duration;
         if (start < eventEnd && end > event.startHour) return true;
       }
@@ -302,7 +432,6 @@ async function triggerAIAutoSchedule() {
         if (!isSlotOccupied(slot, duration)) {
           const slotEnergy = getEnergyForHour(slot);
           const energyDiff = Math.abs(task.energy - slotEnergy);
-          
           const timeDecay = (endDay - slot) * 0.1;
           const slotScore = (10 - energyDiff * 3) + timeDecay;
 
@@ -318,6 +447,7 @@ async function triggerAIAutoSchedule() {
           id: `auto-s-${task.id}`,
           taskId: task.id,
           title: task.title,
+          date: currentSelectedDate,
           startHour: bestSlot,
           duration: duration,
           category: task.category,
@@ -330,9 +460,10 @@ async function triggerAIAutoSchedule() {
     await window.api.saveSchedule(newSchedule);
 
     const scheduledCount = newSchedule.length - lockedEvents.length;
-    window.showToast(`Scheduled ${scheduledCount} tasks in your peak energy slots.`, "success");
+    window.showToast(`Auto-scheduled ${scheduledCount} tasks on this date.`, "success");
     window.loadCalendar();
   } catch (err) {
+    console.error(err);
     window.showToast("Failed to run schedule optimization.", "error");
   }
 }

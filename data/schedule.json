@@ -8,5 +8,15 @@
     "category": "Work",
     "locked": false,
     "userId": "6a40ad43130507c2448536c5"
+  },
+  {
+    "id": "manual-s-1782709605107",
+    "taskId": "6a41fd47da153d5baba4ba06",
+    "title": "cdc exam preparation",
+    "startHour": 9,
+    "duration": 1,
+    "category": "Work",
+    "locked": false,
+    "userId": "6a40a8220e75c877b1ec84a9"
   }
 ]

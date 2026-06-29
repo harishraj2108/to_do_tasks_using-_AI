@@ -715,6 +715,21 @@
   opacity: 0.85;
 }
 
+.scheduled-block.coinciding {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(249, 115, 22, 0.25) 100%) !important;
+  border-left-color: var(--accent-red) !important;
+  border: 1px dashed rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
+  animation: pulseWarning 2s infinite ease-in-out;
+}
+
+@keyframes pulseWarning {
+  0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+  50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.45); }
+  100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+}
+
 .block-title {
   font-weight: 600;
 }

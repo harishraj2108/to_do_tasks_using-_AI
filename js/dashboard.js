@@ -221,19 +221,78 @@ document.addEventListener('DOMContentLoaded', () => {
   // Form submit handler: add task
   const form = document.getElementById('add-task-form');
   if (form) {
+    const populateTimeDropdowns = () => {
+      const startSelect = document.getElementById('task-starttime-select');
+      const endSelect = document.getElementById('task-endtime-select');
+      if (!startSelect || !endSelect) return;
+
+      const dateInput = document.getElementById('task-schedule-date');
+      if (dateInput) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+      }
+
+      for (let h = 0; h < 24; h += 0.5) {
+        const hh = Math.floor(h);
+        const mm = h % 1 === 0.5 ? '30' : '00';
+        const ampm = hh >= 12 ? 'PM' : 'AM';
+        const displayHour = hh > 12 ? hh - 12 : hh === 0 ? 12 : hh;
+        const label = `${displayHour}:${mm} ${ampm}`;
+
+        const startOpt = document.createElement('option');
+        startOpt.value = h;
+        startOpt.textContent = label;
+        startSelect.appendChild(startOpt);
+
+        const endOpt = document.createElement('option');
+        endOpt.value = h + 0.5;
+        const endH = h + 0.5;
+        const endHh = Math.floor(endH);
+        const endMm = endH % 1 === 0.5 ? '30' : '00';
+        const endAmpm = endHh >= 24 ? 'AM' : endHh >= 12 ? 'PM' : 'AM';
+        const endDisplayHour = endHh > 12 ? (endHh > 24 ? endHh - 24 : endHh - 12) : endHh === 0 ? 12 : endHh;
+        const endLabel = `${endDisplayHour}:${endMm} ${endAmpm}`;
+        endOpt.textContent = endLabel;
+        endSelect.appendChild(endOpt);
+      }
+    };
+    populateTimeDropdowns();
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const title = document.getElementById('task-title-input').value.trim();
       const category = document.getElementById('task-category-select').value;
       const deadlineDays = parseInt(document.getElementById('task-deadline-input').value, 10);
-      const duration = parseFloat(document.getElementById('task-duration-input').value);
+      const durationInput = parseFloat(document.getElementById('task-duration-input').value);
       const energy = parseInt(document.getElementById('task-energy-input').value, 10);
       
+      const startTimeVal = document.getElementById('task-starttime-select').value;
+      const endTimeVal = document.getElementById('task-endtime-select').value;
+      const scheduleDateVal = document.getElementById('task-schedule-date').value;
+
       const activePriorityBtn = document.querySelector('#priority-btn-group .btn.active');
       const priority = activePriorityBtn ? parseInt(activePriorityBtn.getAttribute('data-priority'), 10) : 3;
 
       if (!title) return;
+
+      let duration = durationInput;
+      let isScheduled = false;
+      let startHour = 0;
+
+      if (startTimeVal !== "" || endTimeVal !== "") {
+        if (startTimeVal === "" || endTimeVal === "") {
+          window.showToast("Specify both Start and End Time to schedule, or leave both blank.", "warning");
+          return;
+        }
+        startHour = parseFloat(startTimeVal);
+        const endHour = parseFloat(endTimeVal);
+        if (endHour <= startHour) {
+          window.showToast("End Time must be after Start Time.", "warning");
+          return;
+        }
+        duration = endHour - startHour;
+        isScheduled = true;
+      }
 
       const deadlineDate = new Date(Date.now() + deadlineDays * 24 * 60 * 60 * 1000);
       const newTask = {
@@ -252,11 +311,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const tasks = await window.api.getTasks();
         tasks.push(newTask);
         await window.api.saveTasks(tasks);
+
+        if (isScheduled) {
+          const schedule = await window.api.getSchedule();
+          const newBlock = {
+            id: `manual-s-${Date.now()}`,
+            taskId: newTask.id,
+            title: newTask.title,
+            date: scheduleDateVal || new Date().toISOString().split('T')[0],
+            startHour: startHour,
+            duration: duration,
+            category: newTask.category,
+            locked: false
+          };
+          schedule.push(newBlock);
+          await window.api.saveSchedule(schedule);
+        }
         
-        window.showToast("Task added and prioritized.", "success");
+        window.showToast(isScheduled ? "Task created and added to calendar." : "Task added and prioritized.", "success");
         form.reset();
+
+        const dateInput = document.getElementById('task-schedule-date');
+        if (dateInput) {
+          dateInput.value = new Date().toISOString().split('T')[0];
+        }
         
-        // Reset priority group visual state to default 3
         document.querySelectorAll('#priority-btn-group .btn').forEach(b => {
           if (b.getAttribute('data-priority') === '3') b.classList.add('active');
           else b.classList.remove('active');

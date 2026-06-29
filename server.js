@@ -8,6 +8,7 @@ const user_tasks = require("./models/user_tasks.js");
 const Habit = require("./models/habits.js");
 const DashboardStats = require("./models/dashboard_stats.js");
 const ChatHistory = require("./models/chat_history.js");
+const Schedule = require("./models/schedule.js");
 const app = express();
 const session = require("express-session");
 require('dotenv').config();
@@ -191,7 +192,7 @@ app.post('/signup', async(req, res)=>{
   res.redirect('/?success=Account created! Please login');
 })
 
-async function callGemini(prompt, history = [], tasks = []) {
+async function callGemini(prompt, history = [], tasks = [], localDate) {
   const apiKey = process.env.GEMNI_API;
   if (!apiKey) {
     console.error("GEMNI_API key not found in environment variables");
@@ -220,17 +221,19 @@ async function callGemini(prompt, history = [], tasks = []) {
 You are helping the user manage their daily schedule, tasks, habits, and focus loops.
 You have access to their active tasks: ${JSON.stringify(taskContext)}.
 
+Today's reference date is: ${localDate || new Date().toISOString().split('T')[0]}. Use this reference date to compute relative date targets (for example, "tomorrow" would be calculated relative to this date, and "1st july 2026" is "2026-07-01").
+
 When the user asks you to:
-1. Create, add, or register a task (e.g. "Add task Read books", "I want to work on writing slides"), you MUST include a structured action.
-   Format: {"type": "add_task", "data": {"title": "Task title", "category": "Work|Coding|Personal|Admin", "duration": 1.5, "energy": 3, "deadlineDays": 1}}
+1. Create, add, or register a task: include action {"type": "add_task", "data": {"title": "Task title", "category": "Work|Coding|Personal|Admin", "duration": 1.5, "energy": 3, "deadlineDays": 1}}
 2. Optimize, schedule, or block time for their day/tasks: include action {"type": "optimize_schedule"}.
 3. Start a focus session or deep work (e.g. "focus on slides", "start deep work"): include action {"type": "start_focus", "data": {"taskTitle": "Task title to focus on"}}.
 4. View or check habits/streaks: include action {"type": "view_habits"}.
+5. Schedule a meeting, call, block time, or appointment directly on their calendar for a specific time and date (e.g., "schedule a meeting at 10 am on 1st july 2026"): you MUST include action {"type": "add_schedule", "data": {"title": "Meeting / Event Title", "date": "YYYY-MM-DD", "startHour": 10.0, "duration": 1.0, "category": "Work"}}
 
 You MUST return your response strictly as a JSON object matching the following schema. Return ONLY raw JSON text. Do NOT wrap it in markdown code blocks or backticks:
 {
   "reply": "Conversational, direct, encouraging reply to the user...",
-  "action": null | { "type": "add_task" | "optimize_schedule" | "start_focus" | "view_habits", "data": Object }
+  "action": null | { "type": "add_task" | "optimize_schedule" | "start_focus" | "view_habits" | "add_schedule", "data": Object }
 }`;
 
   const contents = [];
@@ -335,7 +338,7 @@ app.post('/api/chat', async (req, res) => {
     if (!req.session?.userid) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
-    const { message } = req.body;
+    const { message, localDate } = req.body;
     if (!message || !message.trim()) {
       return res.status(400).json({ error: 'Message cannot be empty.' });
     }
@@ -359,7 +362,7 @@ app.post('/api/chat', async (req, res) => {
 
     const activeTasks = await user_tasks.find({ userId, completed: false }).lean();
 
-    const geminiResult = await callGemini(message.trim(), contextHistory, activeTasks);
+    const geminiResult = await callGemini(message.trim(), contextHistory, activeTasks, localDate);
 
     if (geminiResult.action && geminiResult.action.type === 'add_task') {
       const taskData = geminiResult.action.data;
@@ -380,6 +383,22 @@ app.post('/api/chat', async (req, res) => {
       });
       await newTask.save();
       geminiResult.action.taskId = newTask._id.toString();
+    }
+
+    if (geminiResult.action && geminiResult.action.type === 'add_schedule') {
+      const scheduleData = geminiResult.action.data;
+      const newEvent = new Schedule({
+        userId,
+        id: `ai-s-${Date.now()}`,
+        title: scheduleData.title || "AI Event",
+        date: scheduleData.date || new Date().toISOString().split('T')[0],
+        startHour: Number(scheduleData.startHour),
+        duration: Number(scheduleData.duration) || 1.0,
+        category: scheduleData.category || 'Work',
+        locked: false
+      });
+      await newEvent.save();
+      geminiResult.action.scheduleId = newEvent.id;
     }
 
     const assistantMsg = new ChatHistory({
@@ -592,38 +611,56 @@ app.delete('/api/tasks/:id', async (req, res) => {
   }
 });
 
-app.get('/api/schedule', (req, res) => {
+app.get('/api/schedule', async (req, res) => {
   try {
     if (req.session?.userid) {
-      const userSchedules = readSchedule().filter(item => item.userId === req.session.userid.toString());
-      return res.json(userSchedules);
+      const dbSchedules = await Schedule.find({ userId: req.session.userid }).lean();
+      return res.json(dbSchedules.map(item => ({
+        id: item.id,
+        taskId: item.taskId,
+        title: item.title,
+        date: item.date,
+        startHour: item.startHour,
+        duration: item.duration,
+        category: item.category,
+        locked: item.locked
+      })));
     }
-    res.json(readSchedule());
+    res.json([]);
   } catch (error) {
+    console.error('Failed to read schedule data:', error);
     res.status(500).json({ error: 'Failed to read schedule data.' });
   }
 });
 
-app.post('/api/schedule', (req, res) => {
+app.post('/api/schedule', async (req, res) => {
   try {
     if (!req.session?.userid) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
-    const userId = req.session.userid.toString();
-    const newSchedules = Array.isArray(req.body) ? req.body : [];
+    const userId = req.session.userid;
+    const payload = req.body;
+    const newSchedules = Array.isArray(payload) ? payload : [payload];
 
-    const allSchedules = readSchedule();
-    const otherSchedules = allSchedules.filter(item => item.userId !== userId);
-
-    const userSchedules = newSchedules.map(item => ({
-      ...item,
-      userId: userId
-    }));
-
-    const combined = [...otherSchedules, ...userSchedules];
-    writeSchedule(combined);
+    await Schedule.deleteMany({ userId });
+    
+    if (newSchedules.length > 0) {
+      const scheduleDocs = newSchedules.map(item => ({
+        userId,
+        id: item.id || `s-${Date.now()}-${Math.random()}`,
+        taskId: item.taskId || null,
+        title: item.title,
+        date: item.date || new Date().toISOString().split('T')[0],
+        startHour: Number(item.startHour),
+        duration: Number(item.duration),
+        category: item.category || 'Work',
+        locked: !!item.locked
+      }));
+      await Schedule.insertMany(scheduleDocs);
+    }
     res.json({ success: true });
   } catch (error) {
+    console.error('Failed to save schedule data:', error);
     res.status(500).json({ error: 'Failed to save schedule data.' });
   }
 });
