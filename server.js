@@ -11,7 +11,7 @@ const ChatHistory = require("./models/chat_history.js");
 const Schedule = require("./models/schedule.js");
 const app = express();
 const session = require("express-session");
-const MongoStore = require("connect-mongo");
+const MongoStore = require("connect-mongo").MongoStore;
 require('dotenv').config();
 const mongoose = require('mongoose');
 const HABITS_FILE = path.join(__dirname, 'data', 'habits.json');
@@ -24,8 +24,7 @@ const deepwork_file = path.join(__dirname , 'data', 'deepwork.json');
 
 const mongoUri = process.env.MONGODB_URI;
 if (!mongoUri) {
-  console.error('MongoDB connection URI not found. Set MONGODB_URI in your .env or environment.');
-  process.exit(1);
+  console.warn('WARNING: MONGODB_URI environment variable is not configured. Database features will fail.');
 }
 
 function auth(req, res, next) {
@@ -37,24 +36,34 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('trust proxy', 1);
-app.use(session({
+
+const sessionOptions = {
   secret: process.env.SESSION_SECRET || 'keyboard cat',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
+  cookie: { secure: false }
+};
+
+if (mongoUri) {
+  sessionOptions.store = MongoStore.create({
     mongoUrl: mongoUri,
     ttl: 14 * 24 * 60 * 60
-  }),
-  cookie: { secure: false }
-}));
+  });
+}
+
+app.use(session(sessionOptions));
 
 app.get('/check-session', (req, res) => res.json(req.session));
-mongoose.connect(mongoUri)
-  .then(() => console.log('MongoDB connected '))
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-  });
+
+if (mongoUri) {
+  mongoose.connect(mongoUri)
+    .then(() => console.log('MongoDB connected '))
+    .catch(err => {
+      console.error('MongoDB connection error:', err);
+    });
+} else {
+  console.error('MongoDB is not connected because MONGODB_URI is missing.');
+}
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.set('views', path.join(__dirname, "views"));
 app.set('view engine', 'ejs');
