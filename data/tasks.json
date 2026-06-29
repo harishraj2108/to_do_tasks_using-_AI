@@ -1,6 +1,6 @@
 [
   {
-    "id": "6a42029a63e003b53931117e",
+    "id": "6a4207ef6e1d1f8a8a029865",
     "title": "write assignment",
     "priority": 5,
     "duration": 1,
@@ -42,7 +42,7 @@
     ]
   },
   {
-    "id": "6a42029a63e003b539311185",
+    "id": "6a4207ef6e1d1f8a8a02986c",
     "title": "fix login bug",
     "priority": 5,
     "duration": 6,
@@ -79,13 +79,24 @@
     ]
   },
   {
-    "id": "t-1782712303508",
+    "id": "6a4207ef6e1d1f8a8a029872",
     "title": "prepare for NLP exam",
     "priority": 5,
     "duration": 4,
     "energy": 5,
     "deadline": "2026-07-02T05:51:43.508Z",
     "category": "Admin",
+    "completed": false,
+    "subtasks": []
+  },
+  {
+    "id": "t-1782733716173",
+    "title": "do coding",
+    "priority": 3,
+    "duration": 1,
+    "energy": 3,
+    "deadline": "2026-06-30T11:48:36.173Z",
+    "category": "Work",
     "completed": false,
     "subtasks": []
   }

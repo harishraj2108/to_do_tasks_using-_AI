@@ -265,7 +265,14 @@ function initAIAssistant() {
 
   const loadHistory = async () => {
     try {
-      chatHistory = await window.api.getChatHistory();
+      const data = await window.api.getChatHistory();
+      chatHistory = Array.isArray(data) ? data : [];
+      if (chatHistory.length === 0) {
+        chatHistory = [{
+          sender: 'assistant',
+          text: "Greetings. I am Aegis, your proactive productivity companion. Feel free to talk to me or ask for help scheduling."
+        }];
+      }
       renderHistory();
     } catch (err) {
       console.error("Failed to load chat history:", err);

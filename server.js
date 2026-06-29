@@ -11,6 +11,7 @@ const ChatHistory = require("./models/chat_history.js");
 const Schedule = require("./models/schedule.js");
 const app = express();
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 require('dotenv').config();
 const mongoose = require('mongoose');
 const HABITS_FILE = path.join(__dirname, 'data', 'habits.json');
@@ -35,10 +36,15 @@ function auth(req, res, next) {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.set('trust proxy', 1);
 app.use(session({
   secret: process.env.SESSION_SECRET || 'keyboard cat',
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: mongoUri,
+    ttl: 14 * 24 * 60 * 60
+  }),
   cookie: { secure: false }
 }));
 
