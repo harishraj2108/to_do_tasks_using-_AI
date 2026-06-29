@@ -125,49 +125,67 @@ const writedeepwork = (deepwork) => {
 const writedashboard = (dashboard) => {
   fs.writeFileSync(dashboard_file, JSON.stringify(dashboard, null, 2));
 };
-app.get('/index', async (req, res)=>{
-  let userEmail = null;
-  if (req.session?.userid) {
-    const user = await login_auth.findById(req.session.userid).select('email');
-    userEmail = user?.email || null;
+const verifyUsernameSession = async (req, res, next) => {
+  if (!req.session?.userid) {
+    return res.redirect('/');
   }
-  res.render('index', { userEmail });
-
-});
-app.get('/calendar', async (req, res)=>{
-  let userEmail = null;
-  if (req.session?.userid) {
+  try {
     const user = await login_auth.findById(req.session.userid).select('email');
-    userEmail = user?.email || null;
+    if (!user) {
+      return res.redirect('/');
+    }
+    const expectedUsername = user.email.split('@')[0];
+    if (req.params.username !== expectedUsername) {
+      // Correct the path to point to their own profile username
+      const page = req.path.split('/').pop();
+      return res.redirect(`/${expectedUsername}/${page}`);
+    }
+    req.userEmail = user.email;
+    next();
+  } catch (err) {
+    console.error('Session validation error:', err);
+    res.redirect('/');
   }
-  res.render('calendar', { userEmail });
+};
 
+app.get('/:username/index', verifyUsernameSession, (req, res) => {
+  res.render('index', { userEmail: req.userEmail });
 });
-app.get('/habits', async (req, res)=>{
-  let userEmail = null;
+
+app.get('/:username/calendar', verifyUsernameSession, (req, res) => {
+  res.render('calendar', { userEmail: req.userEmail });
+});
+
+app.get('/:username/habits', verifyUsernameSession, (req, res) => {
+  res.render('habits', { userEmail: req.userEmail });
+});
+
+app.get('/:username/deepwork', verifyUsernameSession, (req, res) => {
+  res.render('deepwork', { userEmail: req.userEmail });
+});
+
+app.get('/', async (req, res) => {
   if (req.session?.userid) {
-    const user = await login_auth.findById(req.session.userid).select('email');
-    userEmail = user?.email || null;
+    try {
+      const user = await login_auth.findById(req.session.userid).select('email');
+      if (user) {
+        const username = user.email.split('@')[0];
+        return res.redirect(`/${username}/index`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
-  res.render('habits', { userEmail });
-
+  res.render('login', { error: req.query.error || null, success: req.query.success || null });
 });
-app.get('/deepwork', async (req, res)=>{
-  let userEmail = null;
-  if (req.session?.userid) {
-    const user = await login_auth.findById(req.session.userid).select('email');
-    userEmail = user?.email || null;
-  }
-  res.render('deepwork', { userEmail });
 
+app.get('/login', (req, res) => {
+  res.redirect('/');
 });
-app.get('/', (req,res)=>{
-  res.render('login',  { error: req.query.error || null, success: req.query.success || null });
-});
-app.get('/signup', (req, res)=>{
-  res.render('signup',  { error: req.query.error || null, success: req.query.success || null });
-})
 
+app.get('/signup', (req, res) => {
+  res.render('signup', { error: req.query.error || null, success: req.query.success || null });
+});
 
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
@@ -180,7 +198,8 @@ app.post('/login', async (req, res) => {
   if (!match) return res.redirect('/?error=incorrect password or gmail');
 
   req.session.userid = user._id;
-  res.redirect('/index');
+  const username = user.email.split('@')[0];
+  res.redirect(`/${username}/index`);
 });
 app.post('/signup', async(req, res)=>{
    const { fullname ,email, password } = req.body;

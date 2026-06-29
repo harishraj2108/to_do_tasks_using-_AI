@@ -363,8 +363,9 @@ function initAIAssistant() {
         } 
         else if (type === 'optimize_schedule') {
           window.showToast("Initiating schedule optimization...", "info");
+          const username = window.location.pathname.split('/')[1] || 'guest';
           setTimeout(() => {
-            window.location.href = '/calendar?optimize=true';
+            window.location.href = `/${username}/calendar?optimize=true`;
           }, 1200);
         }
         else if (type === 'start_focus') {
@@ -374,14 +375,16 @@ function initAIAssistant() {
           } else {
             sessionStorage.setItem('active_deepwork_task_title', data.taskTitle);
           }
+          const username = window.location.pathname.split('/')[1] || 'guest';
           setTimeout(() => {
-            window.location.href = '/deepwork';
+            window.location.href = `/${username}/deepwork`;
           }, 1200);
         }
         else if (type === 'view_habits') {
           window.showToast("Navigating to Habit Loops manager...", "info");
+          const username = window.location.pathname.split('/')[1] || 'guest';
           setTimeout(() => {
-            window.location.href = '/habits';
+            window.location.href = `/${username}/habits`;
           }, 1000);
         }
         else if (type === 'add_schedule') {

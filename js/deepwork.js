@@ -379,8 +379,9 @@ async function completeActiveTask() {
     sessionStorage.removeItem('active_deepwork_task_id');
     
     // Redirect to dashboard
+    const username = window.location.pathname.split('/')[1] || 'guest';
     setTimeout(() => {
-      window.location.href = '/';
+      window.location.href = `/${username}/index`;
     }, 1000);
   } catch (e) {
     window.showToast("Failed to mark task completed.", "error");

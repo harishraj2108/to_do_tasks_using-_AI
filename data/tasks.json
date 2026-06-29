@@ -1,6 +1,6 @@
 [
   {
-    "id": "6a42029763e003b539311176",
+    "id": "6a42029a63e003b53931117e",
     "title": "write assignment",
     "priority": 5,
     "duration": 1,
@@ -42,7 +42,7 @@
     ]
   },
   {
-    "id": "6a42029763e003b53931117d",
+    "id": "6a42029a63e003b539311185",
     "title": "fix login bug",
     "priority": 5,
     "duration": 6,
@@ -53,24 +53,40 @@
     "subtasks": [
       {
         "text": "Formulate specific, measurable success criteria",
-        "completed": false
+        "completed": false,
+        "_id": "6a42029a63e003b539311186"
       },
       {
         "text": "Conduct initial research & collect key tools",
-        "completed": false
+        "completed": false,
+        "_id": "6a42029a63e003b539311187"
       },
       {
         "text": "Execute core task focus blocks (45 mins)",
-        "completed": false
+        "completed": false,
+        "_id": "6a42029a63e003b539311188"
       },
       {
         "text": "Review draft outcome & check for errors",
-        "completed": false
+        "completed": false,
+        "_id": "6a42029a63e003b539311189"
       },
       {
         "text": "Finalize output and document work summary",
-        "completed": false
+        "completed": false,
+        "_id": "6a42029a63e003b53931118a"
       }
     ]
+  },
+  {
+    "id": "t-1782712303508",
+    "title": "prepare for NLP exam",
+    "priority": 5,
+    "duration": 4,
+    "energy": 5,
+    "deadline": "2026-07-02T05:51:43.508Z",
+    "category": "Admin",
+    "completed": false,
+    "subtasks": []
   }
 ]
