@@ -103,7 +103,14 @@ window.loadDashboard = async () => {
 
     scoredTasks.forEach(task => {
       const remainingText = getRemainingTimeText(task.deadline);
-      const isUrgent = new Date(task.deadline) - new Date() < 8 * 60 * 60 * 1000 && !task.completed;
+      
+      const dDate = new Date(task.deadline);
+      const dToday = new Date();
+      const dateVal = new Date(dDate.getFullYear(), dDate.getMonth(), dDate.getDate());
+      const todayVal = new Date(dToday.getFullYear(), dToday.getMonth(), dToday.getDate());
+      const diffDays = Math.round((dateVal - todayVal) / (1000 * 60 * 60 * 24));
+      const isUrgent = diffDays <= 0 && !task.completed;
+      
       const subtaskDone = task.subtasks ? task.subtasks.filter(s => s.completed).length : 0;
       const subtaskTotal = task.subtasks ? task.subtasks.length : 0;
 
@@ -179,13 +186,20 @@ window.loadDashboard = async () => {
 
 // Relative deadline formatting helper
 function getRemainingTimeText(deadlineStr) {
-  const diffMs = new Date(deadlineStr) - new Date();
-  const diffHours = diffMs / (1000 * 60 * 60);
+  if (!deadlineStr) return '';
+  const dDate = new Date(deadlineStr);
+  const dToday = new Date();
+  
+  const dateVal = new Date(dDate.getFullYear(), dDate.getMonth(), dDate.getDate());
+  const todayVal = new Date(dToday.getFullYear(), dToday.getMonth(), dToday.getDate());
+  
+  const diffMs = dateVal - todayVal;
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffHours < 0) return 'Overdue';
-  if (diffHours < 1) return 'Within 1h';
-  if (diffHours < 24) return `in ${Math.round(diffHours)}h`;
-  return `in ${Math.round(diffHours / 24)}d`;
+  if (diffDays < 0) return 'Overdue';
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Tomorrow';
+  return `in ${diffDays}d`;
 }
 
 // Handler: energy buttons
@@ -262,8 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const title = document.getElementById('task-title-input').value.trim();
       const category = document.getElementById('task-category-select').value;
-      const deadlineDays = parseInt(document.getElementById('task-deadline-input').value, 10);
-      const durationInput = parseFloat(document.getElementById('task-duration-input').value);
       const energy = parseInt(document.getElementById('task-energy-input').value, 10);
       
       const startTimeVal = document.getElementById('task-starttime-select').value;
@@ -275,26 +287,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!title) return;
 
-      let duration = durationInput;
-      let isScheduled = false;
-      let startHour = 0;
-
-      if (startTimeVal !== "" || endTimeVal !== "") {
-        if (startTimeVal === "" || endTimeVal === "") {
-          window.showToast("Specify both Start and End Time to schedule, or leave both blank.", "warning");
-          return;
-        }
-        startHour = parseFloat(startTimeVal);
-        const endHour = parseFloat(endTimeVal);
-        if (endHour <= startHour) {
-          window.showToast("End Time must be after Start Time.", "warning");
-          return;
-        }
-        duration = endHour - startHour;
-        isScheduled = true;
+      if (startTimeVal === "" || endTimeVal === "" || !scheduleDateVal) {
+        window.showToast("Please specify Start Time, End Time, and Date to create a task.", "warning");
+        return;
       }
 
-      const deadlineDate = new Date(Date.now() + deadlineDays * 24 * 60 * 60 * 1000);
+      const startHour = parseFloat(startTimeVal);
+      const endHour = parseFloat(endTimeVal);
+      if (endHour <= startHour) {
+        window.showToast("End Time must be after Start Time.", "warning");
+        return;
+      }
+      const duration = endHour - startHour;
+
+      const deadlineDate = new Date(scheduleDateVal + 'T00:00:00');
       const newTask = {
         id: `t-${Date.now()}`,
         title,
@@ -312,23 +318,21 @@ document.addEventListener('DOMContentLoaded', () => {
         tasks.push(newTask);
         await window.api.saveTasks(tasks);
 
-        if (isScheduled) {
-          const schedule = await window.api.getSchedule();
-          const newBlock = {
-            id: `manual-s-${Date.now()}`,
-            taskId: newTask.id,
-            title: newTask.title,
-            date: scheduleDateVal || new Date().toISOString().split('T')[0],
-            startHour: startHour,
-            duration: duration,
-            category: newTask.category,
-            locked: false
-          };
-          schedule.push(newBlock);
-          await window.api.saveSchedule(schedule);
-        }
+        const schedule = await window.api.getSchedule();
+        const newBlock = {
+          id: `manual-s-${Date.now()}`,
+          taskId: newTask.id,
+          title: newTask.title,
+          date: scheduleDateVal,
+          startHour: startHour,
+          duration: duration,
+          category: newTask.category,
+          locked: false
+        };
+        schedule.push(newBlock);
+        await window.api.saveSchedule(schedule);
         
-        window.showToast(isScheduled ? "Task created and added to calendar." : "Task added and prioritized.", "success");
+        window.showToast("Task created and added to calendar.", "success");
         form.reset();
 
         const dateInput = document.getElementById('task-schedule-date');

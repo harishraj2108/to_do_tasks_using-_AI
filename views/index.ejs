@@ -146,34 +146,6 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="task-deadline-input">Deadline (Days)</label>
-                  <input
-                    type="number"
-                    id="task-deadline-input"
-                    min="1"
-                    max="30"
-                    value="1"
-                    class="form-input"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="task-duration-input">Duration (Hours)</label>
-                  <input
-                    type="number"
-                    id="task-duration-input"
-                    step="0.5"
-                    min="0.5"
-                    max="8"
-                    value="1"
-                    class="form-input"
-                    required
-                  />
-                </div>
-                <div class="form-group">
                   <label for="task-energy-input">Energy Cost (1-5)</label>
                   <input
                     type="number"
@@ -189,22 +161,20 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="task-starttime-select">Start Time (Optional)</label>
-                  <select id="task-starttime-select" class="form-input">
-                    <option value="">None (Auto-schedule)</option>
+                  <label for="task-starttime-select">Start Time</label>
+                  <select id="task-starttime-select" class="form-input" required>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="task-endtime-select">End Time (Optional)</label>
-                  <select id="task-endtime-select" class="form-input">
-                    <option value="">None (Auto-schedule)</option>
+                  <label for="task-endtime-select">End Time</label>
+                  <select id="task-endtime-select" class="form-input" required>
                   </select>
                 </div>
               </div>
 
               <div class="form-group">
-                <label for="task-schedule-date">Scheduling Date (Optional)</label>
-                <input type="date" id="task-schedule-date" class="form-input" />
+                <label for="task-schedule-date">Date</label>
+                <input type="date" id="task-schedule-date" class="form-input" required />
               </div>
 
               <div class="form-group" style="margin: 0.25rem 0;">

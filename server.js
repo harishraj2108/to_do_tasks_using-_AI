@@ -616,6 +616,7 @@ app.post('/api/tasks', async (req, res) => {
       await user_tasks.deleteMany({ userId: req.session.userid });
       if (tasks.length > 0) {
         const taskDocs = tasks.map(task => ({
+          _id: task.id,
           userId: req.session.userid,
           title: task.title,
           priority: task.priority,

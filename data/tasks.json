@@ -1,102 +1,12 @@
 [
   {
-    "id": "6a4207ef6e1d1f8a8a029865",
-    "title": "write assignment",
-    "priority": 5,
-    "duration": 1,
-    "energy": 3,
-    "deadline": "2026-06-30T05:26:25.404Z",
-    "category": "Work",
-    "completed": false,
-    "subtasks": [
-      {
-        "text": "Conduct preliminary research & compile reference links",
-        "completed": false,
-        "_id": "6a42029763e003b539311177"
-      },
-      {
-        "text": "Write bullet outline of chapters or sections",
-        "completed": false,
-        "_id": "6a42029763e003b539311178"
-      },
-      {
-        "text": "Draft introduction and core thesis statement",
-        "completed": false,
-        "_id": "6a42029763e003b539311179"
-      },
-      {
-        "text": "Flesh out body sections with arguments & citations",
-        "completed": false,
-        "_id": "6a42029763e003b53931117a"
-      },
-      {
-        "text": "Refine grammar, spelling, and transition flows",
-        "completed": false,
-        "_id": "6a42029763e003b53931117b"
-      },
-      {
-        "text": "Format margins, exports, and submit final copy",
-        "completed": false,
-        "_id": "6a42029763e003b53931117c"
-      }
-    ]
-  },
-  {
-    "id": "6a4207ef6e1d1f8a8a02986c",
-    "title": "fix login bug",
-    "priority": 5,
-    "duration": 6,
-    "energy": 3,
-    "deadline": "2026-07-02T05:27:59.736Z",
-    "category": "Coding",
-    "completed": false,
-    "subtasks": [
-      {
-        "text": "Formulate specific, measurable success criteria",
-        "completed": false,
-        "_id": "6a42029a63e003b539311186"
-      },
-      {
-        "text": "Conduct initial research & collect key tools",
-        "completed": false,
-        "_id": "6a42029a63e003b539311187"
-      },
-      {
-        "text": "Execute core task focus blocks (45 mins)",
-        "completed": false,
-        "_id": "6a42029a63e003b539311188"
-      },
-      {
-        "text": "Review draft outcome & check for errors",
-        "completed": false,
-        "_id": "6a42029a63e003b539311189"
-      },
-      {
-        "text": "Finalize output and document work summary",
-        "completed": false,
-        "_id": "6a42029a63e003b53931118a"
-      }
-    ]
-  },
-  {
-    "id": "6a4207ef6e1d1f8a8a029872",
-    "title": "prepare for NLP exam",
-    "priority": 5,
-    "duration": 4,
-    "energy": 5,
-    "deadline": "2026-07-02T05:51:43.508Z",
-    "category": "Admin",
-    "completed": false,
-    "subtasks": []
-  },
-  {
-    "id": "t-1782733716173",
+    "id": "t-1782736483350",
     "title": "do coding",
     "priority": 3,
-    "duration": 1,
+    "duration": 1.5,
     "energy": 3,
-    "deadline": "2026-06-30T11:48:36.173Z",
-    "category": "Work",
+    "deadline": "2026-06-28T18:30:00.000Z",
+    "category": "Admin",
     "completed": false,
     "subtasks": []
   }
