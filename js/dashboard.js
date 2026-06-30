@@ -126,12 +126,12 @@ window.loadDashboard = async () => {
             </button>
             <div class="task-details">
               <span class="task-title">${task.title}</span>
-              <div class="task-meta">
+              <div class="task-meta" style="display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.4rem;">
                 <span class="tag">${task.category}</span>
-                <span>⏱️ ${task.duration}h</span>
-                <span>⚡ Energy: ${task.energy}/5</span>
-                <span class="${isUrgent ? 'text-red' : ''}">📅 ${remainingText}</span>
-                ${subtaskTotal > 0 ? `<span class="subtask-counter">📋 ${subtaskDone}/${subtaskTotal}</span>` : ''}
+                <span class="meta-box green-box">duration: ${task.duration}h</span>
+                <span class="meta-box green-box">Energy: ${task.energy}/5</span>
+                <span class="meta-box ${remainingText === 'Overdue' ? 'red-box' : 'green-box'}">due: ${remainingText}</span>
+                ${subtaskTotal > 0 ? `<span class="subtask-counter tag" style="background: rgba(99, 102, 241, 0.12); color: #c7d2fe; border-left-color: var(--accent-indigo);">subtasks: ${subtaskDone}/${subtaskTotal}</span>` : ''}
               </div>
             </div>
           </div>

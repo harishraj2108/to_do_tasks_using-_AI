@@ -76,7 +76,8 @@ window.loadHabits = async () => {
       grid.appendChild(card);
     });
   } catch (e) {
-    window.showToast("Failed to fetch habits list.", "error");
+    console.error("Failed to fetch habits list:", e);
+    window.showToast(`Failed to fetch habits list: ${e.message}`, "error");
   }
 };
 
@@ -109,7 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
         form.reset();
         window.loadHabits();
       } catch (err) {
-        window.showToast("Failed to create habit loop.", "error");
+        console.error("Failed to create habit loop:", err);
+        window.showToast(`Failed to create habit loop: ${err.message}`, "error");
       }
     });
   }
@@ -153,7 +155,8 @@ window.checkHabit = async (id) => {
     );
     window.loadHabits();
   } catch (e) {
-    window.showToast("Failed to update habit status.", "error");
+    console.error("Failed to update habit status:", e);
+    window.showToast(`Failed to update habit status: ${e.message}`, "error");
   }
 };
 
@@ -185,7 +188,8 @@ window.activateSafeguard = async (id) => {
     window.showToast(`AI Safeguard: Streak preserved for ${habitName}!`, "success");
     window.loadHabits();
   } catch (e) {
-    window.showToast("Failed to activate safeguard fallback.", "error");
+    console.error("Failed to activate safeguard fallback:", e);
+    window.showToast(`Failed to activate safeguard fallback: ${e.message}`, "error");
   }
 };
 
@@ -199,6 +203,7 @@ window.deleteHabit = async (id) => {
     if (habit) window.showToast(`Deleted habit: ${habit.name}`, "info");
     window.loadHabits();
   } catch (e) {
-    window.showToast("Failed to delete habit loop.", "error");
+    console.error("Failed to delete habit loop:", e);
+    window.showToast(`Failed to delete habit loop: ${e.message}`, "error");
   }
 };

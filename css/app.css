@@ -730,6 +730,29 @@
   100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
 }
 
+.meta-box {
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.meta-box.green-box {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #a7f3d0;
+}
+
+.meta-box.red-box {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.15);
+}
+
 .block-title {
   font-weight: 600;
 }

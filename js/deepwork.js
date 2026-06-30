@@ -293,7 +293,7 @@ function renderChecklist() {
     container.innerHTML = `
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 2rem; text-align: center;">
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">No micro-tasks generated for this item yet.</p>
-        <button class="btn btn-primary" style="font-size: 0.8rem;" id="generate-ai-subtasks-btn">🪄 Generate Checklist</button>
+        <button class="btn btn-primary" style="font-size: 0.8rem;" id="generate-ai-subtasks-btn"> Generate Checklist</button>
       </div>
     `;
     

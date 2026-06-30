@@ -163,21 +163,7 @@ const verifyUsernameSession = async (req, res, next) => {
   }
 };
 
-app.get('/:username/index', verifyUsernameSession, (req, res) => {
-  res.render('index', { userEmail: req.userEmail });
-});
 
-app.get('/:username/calendar', verifyUsernameSession, (req, res) => {
-  res.render('calendar', { userEmail: req.userEmail });
-});
-
-app.get('/:username/habits', verifyUsernameSession, (req, res) => {
-  res.render('habits', { userEmail: req.userEmail });
-});
-
-app.get('/:username/deepwork', verifyUsernameSession, (req, res) => {
-  res.render('deepwork', { userEmail: req.userEmail });
-});
 
 app.get('/', async (req, res) => {
   if (req.session?.userid) {
@@ -502,9 +488,19 @@ app.get('/api/habits', async (req, res) => {
     res.json(readHabits());
   } catch (error) {
     console.error('Error fetching habits:', error);
-    res.status(500).json({ error: 'Failed to read habits data.' });
+    res.status(500).json({ 
+      error: 'Failed to read habits data.',
+      details: error.message,
+      stack: error.stack
+    });
   }
 });
+
+const safeDate = (val) => {
+  if (!val) return null;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+};
 
 app.post('/api/habits', async (req, res) => {
   try {
@@ -519,7 +515,7 @@ app.post('/api/habits', async (req, res) => {
           id: habit.id,
           name: habit.name,
           streak: habit.streak,
-          lastChecked: habit.lastChecked ? new Date(habit.lastChecked) : null,
+          lastChecked: safeDate(habit.lastChecked),
           completedToday: habit.completedToday,
           microHabit: habit.microHabit
         }));
@@ -530,7 +526,11 @@ app.post('/api/habits', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Failed to save habits data:', error);
-    res.status(500).json({ error: 'Failed to save habits data.' });
+    res.status(500).json({ 
+      error: 'Failed to save habits data.',
+      details: error.message,
+      stack: error.stack
+    });
   }
 });
 
@@ -762,6 +762,22 @@ app.post('/api/reset', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to reset app data.' });
   }
+});
+
+app.get('/:username/index', verifyUsernameSession, (req, res) => {
+  res.render('index', { userEmail: req.userEmail });
+});
+
+app.get('/:username/calendar', verifyUsernameSession, (req, res) => {
+  res.render('calendar', { userEmail: req.userEmail });
+});
+
+app.get('/:username/habits', verifyUsernameSession, (req, res) => {
+  res.render('habits', { userEmail: req.userEmail });
+});
+
+app.get('/:username/deepwork', verifyUsernameSession, (req, res) => {
+  res.render('deepwork', { userEmail: req.userEmail });
 });
 
 app.listen(5005,()=>{
