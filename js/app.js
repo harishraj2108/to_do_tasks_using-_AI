@@ -223,11 +223,21 @@ function initAIAssistant() {
     const clearBtn = document.createElement('button');
     clearBtn.id = 'ai-clear-btn';
     clearBtn.title = 'Clear chat history';
-    clearBtn.style.cssText = 'background: transparent; border: none; cursor: pointer; font-size: 0.75rem; color: var(--text-muted); margin-right: 0.5rem; display: flex; align-items: center; gap: 0.25rem; transition: color 0.2s;';
-    clearBtn.innerHTML = '🗑️ <span>Clear</span>';
+    clearBtn.style.cssText = 'background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 0.25rem; padding: 0.15rem 0.45rem; cursor: pointer; font-size: 0.7rem; color: #fca5a5; margin-right: 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s ease;';
+    clearBtn.innerHTML = '<span>Clear Chat</span>';
     
-    clearBtn.onmouseover = () => clearBtn.style.color = 'var(--accent-red)';
-    clearBtn.onmouseout = () => clearBtn.style.color = 'var(--text-muted)';
+    clearBtn.onmouseover = () => {
+      clearBtn.style.background = 'rgba(239, 68, 68, 0.15)';
+      clearBtn.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+      clearBtn.style.color = '#ef4444';
+      clearBtn.style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.2)';
+    };
+    clearBtn.onmouseout = () => {
+      clearBtn.style.background = 'rgba(239, 68, 68, 0.08)';
+      clearBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      clearBtn.style.color = '#fca5a5';
+      clearBtn.style.boxShadow = 'none';
+    };
     
     header.insertBefore(clearBtn, closeBtn);
     
