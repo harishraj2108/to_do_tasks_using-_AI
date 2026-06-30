@@ -8,7 +8,28 @@
     "deadline": "2026-06-29T05:15:50.693Z",
     "category": "Work",
     "completed": false,
-    "subtasks": []
+    "subtasks": [
+      {
+        "text": "Understand core objective",
+        "completed": false,
+        "_id": "6a4354471cad00b38132c33e"
+      },
+      {
+        "text": "Draft first block outline",
+        "completed": false,
+        "_id": "6a4354471cad00b38132c33f"
+      },
+      {
+        "text": "Execute main task logic",
+        "completed": false,
+        "_id": "6a4354471cad00b38132c340"
+      },
+      {
+        "text": "Review visual output",
+        "completed": false,
+        "_id": "6a4354471cad00b38132c341"
+      }
+    ]
   },
   {
     "id": "t-1782793737855",
@@ -18,8 +39,34 @@
     "energy": 3,
     "deadline": "2026-06-30T18:30:00.000Z",
     "category": "Coding",
-    "completed": false,
-    "subtasks": []
+    "completed": true,
+    "subtasks": [
+      {
+        "text": "Define the project requirements and set up the development environment",
+        "completed": false,
+        "_id": "6a4355eb8cf9bed5491fe246"
+      },
+      {
+        "text": "Draft the application architecture or write pseudocode for key features",
+        "completed": false,
+        "_id": "6a4355eb8cf9bed5491fe247"
+      },
+      {
+        "text": "Write the core codebase and implement the primary logic",
+        "completed": false,
+        "_id": "6a4355eb8cf9bed5491fe248"
+      },
+      {
+        "text": "Run test suites and debug code to resolve errors",
+        "completed": true,
+        "_id": "6a4355eb8cf9bed5491fe249"
+      },
+      {
+        "text": "Refactor the code for optimization and commit changes to version control",
+        "completed": false,
+        "_id": "6a4355eb8cf9bed5491fe24a"
+      }
+    ]
   },
   {
     "id": "t-1782793754103",
@@ -30,6 +77,27 @@
     "deadline": "2026-07-08T18:30:00.000Z",
     "category": "Work",
     "completed": false,
-    "subtasks": []
+    "subtasks": [
+      {
+        "text": "Gather and organize all CDC volumes, reference materials, and study guides",
+        "completed": true
+      },
+      {
+        "text": "Review the Unit Review Exercises (UREs) and highlight key terms for each volume",
+        "completed": true
+      },
+      {
+        "text": "Create flashcards for difficult concepts, acronyms, and regulations",
+        "completed": false
+      },
+      {
+        "text": "Conduct timed practice quizzes to assess comprehension and retention",
+        "completed": false
+      },
+      {
+        "text": "Perform a final comprehensive review of weak areas before the end-of-course exam",
+        "completed": false
+      }
+    ]
   }
 ]

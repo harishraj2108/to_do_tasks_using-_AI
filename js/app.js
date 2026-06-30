@@ -71,6 +71,17 @@ window.api = {
       throw new Error(errorText || 'Failed to save habits.');
     }
   },
+  generateSubtasks: async (title) => {
+    const res = await fetch(`${API_URL}/ai/subtasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title })
+    });
+    if (!res.ok) {
+      throw new Error('Failed to generate AI subtasks.');
+    }
+    return res.json();
+  },
   getSchedule: async () => {
     const res = await fetch(`${API_URL}/schedule`);
     return res.json();

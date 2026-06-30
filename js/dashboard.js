@@ -426,20 +426,24 @@ window.deleteTask = async (id) => {
 window.runAIBreakdown = async (id) => {
   try {
     const tasks = await window.api.getTasks();
-    let subtasksCount = 0;
+    const targetTask = tasks.find(t => t.id === id);
+    if (!targetTask) return;
+
+    window.showToast("Generating AI action plan...", "info");
+    const list = await window.api.generateSubtasks(targetTask.title);
+
     const updated = tasks.map(t => {
       if (t.id === id) {
-        const list = breakDownGoal(t.title);
-        subtasksCount = list.length;
         return { ...t, subtasks: list };
       }
       return t;
     });
     await window.api.saveTasks(updated);
     sessionStorage.setItem(`expanded_t_${id}`, 'true');
-    window.showToast(`AI checklist generated with ${subtasksCount} actionable items.`, "success");
+    window.showToast(`AI checklist generated with ${list.length} actionable items.`, "success");
     window.loadDashboard();
   } catch (e) {
+    console.error(e);
     window.showToast("Failed to run AI breakdown.", "error");
   }
 };

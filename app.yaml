@@ -1,0 +1,14 @@
+runtime: nodejs20
+
+instance_class: F1
+
+automatic_scaling:
+  max_instances: 2
+
+env_variables:
+  NODE_ENV: 'production'
+  SESSION_SECRET: 'keyboard-cat-aegis'
+  # Note: The database URI and Gemini Key should be configured as environment variables.
+  # We use the keys below as fallbacks.
+  MONGODB_URI: 'mongodb+srv://harishraj:5777@cluster0.qa6dzty.mongodb.net/'
+  GEMNI_API: 'AIzaSyBWw1e9x6d4IYWyTQYAxqF8J_qxKo1lz7U'

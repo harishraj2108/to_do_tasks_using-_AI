@@ -323,16 +323,19 @@ function renderChecklist() {
 
 // Generate checklists based on title
 async function generateAISubtasks() {
-  const list = breakDownGoal(activeTask.title);
-  activeTask.subtasks = list;
-
+  if (!activeTask) return;
   try {
+    window.showToast("Generating AI action plan...", "info");
+    const list = await window.api.generateSubtasks(activeTask.title);
+    activeTask.subtasks = list;
+
     const tasks = await window.api.getTasks();
     const updated = tasks.map(t => (t.id === activeTask.id ? activeTask : t));
     await window.api.saveTasks(updated);
     window.showToast(`AI checklist generated with ${list.length} actionable items.`, "success");
     renderChecklist();
   } catch (e) {
+    console.error(e);
     window.showToast("Failed to write subtasks checklist.", "error");
   }
 }

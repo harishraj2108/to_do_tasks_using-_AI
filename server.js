@@ -638,6 +638,99 @@ app.post('/api/tasks', async (req, res) => {
   }
 });
 
+app.post('/api/ai/subtasks', async (req, res) => {
+  try {
+    const { title } = req.body;
+    if (!title) {
+      return res.status(400).json({ error: 'Task title is required.' });
+    }
+
+    const apiKey = process.env.GEMNI_API;
+    if (!apiKey) {
+      console.warn("GEMNI_API key not found, returning fallback checklist.");
+      return res.json([
+        { text: 'Understand core objective', completed: false },
+        { text: 'Draft first block outline', completed: false },
+        { text: 'Execute main task logic', completed: false },
+        { text: 'Review visual output', completed: false }
+      ]);
+    }
+
+    const systemPrompt = `You are Aegis AI, an intelligent productivity assistant.
+The user wants to accomplish the following task: "${title}".
+Generate a step-by-step progress checklist of exactly 4 to 5 actionable subtasks for this task.
+Return your response strictly as a JSON array of strings, where each string is a concise, clear action item.
+Return ONLY raw JSON. Do NOT wrap it in markdown code blocks or backticks.
+Example Output:
+["Action item 1", "Action item 2", "Action item 3", "Action item 4"]`;
+
+    const payload = {
+      contents: [{
+        role: 'user',
+        parts: [{ text: systemPrompt }]
+      }]
+    };
+
+    const models = [
+      "gemini-3.5-flash", 
+      "gemini-3.1-flash-lite", 
+      "gemini-2.5-flash-lite", 
+      "gemini-2.0-flash", 
+      "gemini-2.0-flash-lite"
+    ];
+
+    let list = null;
+
+    for (const model of models) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          console.warn(`Subtask breakdown model ${model} failed:`, response.status);
+          continue;
+        }
+
+        const data = await response.json();
+        const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!replyText) continue;
+
+        let cleaned = replyText.trim();
+        if (cleaned.startsWith("```")) {
+          cleaned = cleaned.replace(/^```(json)?/i, "").replace(/```$/, "").trim();
+        }
+
+        const parsed = JSON.parse(cleaned);
+        if (Array.isArray(parsed)) {
+          list = parsed.map(item => ({ text: String(item).trim(), completed: false }));
+          break;
+        }
+      } catch (err) {
+        console.warn(`Model ${model} failed for subtasks:`, err);
+      }
+    }
+
+    if (!list) {
+      console.warn("All models failed for subtasks, using fallback checklist.");
+      list = [
+        { text: 'Understand core objective', completed: false },
+        { text: 'Draft first block outline', completed: false },
+        { text: 'Execute main task logic', completed: false },
+        { text: 'Review visual output', completed: false }
+      ];
+    }
+
+    res.json(list);
+  } catch (error) {
+    console.error('Failed to generate subtasks:', error);
+    res.status(500).json({ error: 'Failed to generate subtasks.' });
+  }
+});
+
 app.delete('/api/tasks/:id', async (req, res) => {
   try {
     const taskId = req.params.id;
