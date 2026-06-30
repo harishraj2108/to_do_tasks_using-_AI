@@ -873,6 +873,7 @@ app.get('/:username/deepwork', verifyUsernameSession, (req, res) => {
   res.render('deepwork', { userEmail: req.userEmail });
 });
 
-app.listen(5005,()=>{
-  console.log("server running at port http://localhost:5005");
+const PORT = process.env.PORT || 5005;
+app.listen(PORT, () => {
+  console.log(`server running at port http://localhost:${PORT}`);
 });

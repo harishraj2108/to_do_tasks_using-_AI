@@ -56,14 +56,7 @@ window.loadHabits = async () => {
             onclick="checkHabit('${habit.id}')">
             ${habit.completedToday ? (habit.safeguarded ? '🛡️ Safeguarded' : '✓ Completed Today') : 'Mark Done'}
           </button>
-          
-          ${!habit.completedToday ? `
-            <button class="btn" 
-              style="width: 100%; justify-content: center; font-size: 0.8rem; background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.2); color: #c7d2fe;"
-              onclick="activateSafeguard('${habit.id}')">
-              🛡️ Activate AI Safeguard
-            </button>
-          ` : ''}
+
         </div>
 
         ${habit.completedToday && habit.safeguarded ? `

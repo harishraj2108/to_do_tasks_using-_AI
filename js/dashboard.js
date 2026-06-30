@@ -416,7 +416,7 @@ window.deleteTask = async (id) => {
     };
     nextStats.rate = nextStats.finished + nextStats.pending > 0 ? Math.round((nextStats.finished / (nextStats.finished + nextStats.pending)) * 100) : 0;
     await window.api.saveDashboardStats(nextStats);
-    window.showToast("Task deleted from MongoDB.", "info");
+    window.showToast("Task deleted.", "info");
     window.loadDashboard();
   } catch (e) {
     window.showToast("Failed to delete task.", "error");

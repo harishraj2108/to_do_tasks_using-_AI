@@ -11,13 +11,12 @@ window.showToast = (message, type = 'info', duration = 4000) => {
   toast.className = `toast ${type}`;
   toast.id = id;
 
-  let icon = 'ℹ️';
-  if (type === 'success') icon = '✅';
+  let icon = '';
   if (type === 'error') icon = '❌';
   if (type === 'warning') icon = '⚠️';
 
   toast.innerHTML = `
-    <div class="toast-icon">${icon}</div>
+    ${icon ? `<div class="toast-icon">${icon}</div>` : ''}
     <div class="toast-content">
       <div class="toast-message">${message}</div>
     </div>
@@ -37,7 +36,7 @@ window.showToast = (message, type = 'info', duration = 4000) => {
 // REST API helper utilities
 window.api = {
   getTasks: async () => {
-    const res = await fetch(`${API_URL}/tasks`);
+    const res = await fetch(`${API_URL}/tasks?t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
     return res.json();
   },
   saveTasks: async (tasks) => {
@@ -53,7 +52,7 @@ window.api = {
     });
   },
   getHabits: async () => {
-    const res = await fetch(`${API_URL}/habits`);
+    const res = await fetch(`${API_URL}/habits?t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
     if (!res.ok) {
       const errorText = await res.text();
       throw new Error(errorText || 'Failed to fetch habits.');
@@ -83,7 +82,7 @@ window.api = {
     return res.json();
   },
   getSchedule: async () => {
-    const res = await fetch(`${API_URL}/schedule`);
+    const res = await fetch(`${API_URL}/schedule?t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
     return res.json();
   },
   saveSchedule: async (schedule) => {
@@ -94,7 +93,7 @@ window.api = {
     });
   },
   getEnergy: async () => {
-    const res = await fetch(`${API_URL}/energy`);
+    const res = await fetch(`${API_URL}/energy?t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
     const data = await res.json();
     return data.energy;
   },
@@ -107,7 +106,7 @@ window.api = {
   },
   getDashboardStats: async () => {
     try {
-      const res = await fetch(`${API_URL}/dashboard-stats`);
+      const res = await fetch(`${API_URL}/dashboard-stats?t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
       if (!res.ok) {
         return { pending: 0, rate: 0, finished: 0 };
       }
@@ -128,7 +127,7 @@ window.api = {
     }
   },
   getChatHistory: async () => {
-    const res = await fetch(`${API_URL}/chat`);
+    const res = await fetch(`${API_URL}/chat?t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
     return res.json();
   },
   sendChatMessage: async (message) => {
