@@ -251,8 +251,38 @@ function initAIAssistant() {
     
     header.insertBefore(clearBtn, closeBtn);
     
-    clearBtn.addEventListener('click', async () => {
-      if (confirm("Are you sure you want to clear your conversation history?")) {
+    clearBtn.addEventListener('click', () => {
+      const overlay = document.createElement('div');
+      overlay.className = 'clear-confirm-overlay';
+      overlay.style.position = 'absolute';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.right = '0';
+      overlay.style.bottom = '0';
+      overlay.style.background = 'rgba(15, 23, 42, 0.9)';
+      overlay.style.backdropFilter = 'blur(4px)';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.zIndex = '1000';
+      overlay.style.borderRadius = '0.75rem';
+
+      overlay.innerHTML = `
+        <div class="glass-card" style="padding: 1.5rem; text-align: center; max-width: 85%; border: 1px solid rgba(239, 68, 68, 0.25); background: rgba(30, 27, 75, 0.95); border-radius: 0.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+          <h4 style="margin: 0 0 0.5rem; color: #fff; font-size: 0.95rem;">Clear Chat?</h4>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 1.25rem;">This will permanently erase your conversation logs.</p>
+          <div style="display: flex; gap: 0.5rem; justify-content: center;">
+            <button class="btn" id="confirm-clear-yes" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 0.35rem 1rem; font-size: 0.75rem; border-radius: 0.25rem; cursor: pointer;">Clear</button>
+            <button class="btn" id="confirm-clear-no" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-light); color: var(--text-secondary); padding: 0.35rem 1rem; font-size: 0.75rem; border-radius: 0.25rem; cursor: pointer;">Cancel</button>
+          </div>
+        </div>
+      `;
+
+      const assistantPanel = document.querySelector('.ai-assistant-panel') || document.body;
+      assistantPanel.appendChild(overlay);
+
+      overlay.querySelector('#confirm-clear-yes').addEventListener('click', async () => {
+        overlay.remove();
         try {
           const res = await window.api.clearChatHistory();
           if (res.success) {
@@ -266,7 +296,11 @@ function initAIAssistant() {
         } catch (err) {
           window.showToast("Failed to clear chat logs.", "error");
         }
-      }
+      });
+
+      overlay.querySelector('#confirm-clear-no').addEventListener('click', () => {
+        overlay.remove();
+      });
     });
   }
 

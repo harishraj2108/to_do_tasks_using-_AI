@@ -138,7 +138,7 @@ window.loadDashboard = async () => {
           <div class="task-right">
             ${!task.completed ? `<span class="focus-badge">Score: ${task.focusScore}</span>` : ''}
             ${!task.completed && subtaskTotal === 0 ? `
-              <button class="quick-action-btn" title="AI Plan (Generate subtasks)" onclick="event.stopPropagation(); runAIBreakdown('${task.id}')">🪄</button>
+              <button class="btn" style="padding: 0.2rem 0.55rem; font-size: 0.7rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); color: #c7d2fe; border-radius: 0.25rem; cursor: pointer; transition: all 0.2s;" title="AI Plan (Generate subtasks)" onclick="event.stopPropagation(); runAIBreakdown('${task.id}')">AI plan</button>
             ` : ''}
             <button class="quick-action-btn text-red" title="Delete task" onclick="event.stopPropagation(); deleteTask('${task.id}')">✕</button>
           </div>

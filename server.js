@@ -120,25 +120,53 @@ const read_deepwork= () => {
 };
 
 const writeHabits = (habits) => {
-  fs.writeFileSync(HABITS_FILE, JSON.stringify(habits, null, 2));
+  try {
+    fs.writeFileSync(HABITS_FILE, JSON.stringify(habits, null, 2));
+  } catch (error) {
+    console.error('Error writing habits data:', error);
+  }
 };
 const writeTasks = (tasks) => {
-  fs.writeFileSync(TASKS_FILE, JSON.stringify(tasks, null, 2));
+  try {
+    fs.writeFileSync(TASKS_FILE, JSON.stringify(tasks, null, 2));
+  } catch (error) {
+    console.error('Error writing tasks data:', error);
+  }
 };
 const writeSchedule = (schedule) => {
-  fs.writeFileSync(SCHEDULE_FILE, JSON.stringify(schedule, null, 2));
+  try {
+    fs.writeFileSync(SCHEDULE_FILE, JSON.stringify(schedule, null, 2));
+  } catch (error) {
+    console.error('Error writing schedule data:', error);
+  }
 };
 const writeEnergy = (energy) => {
-  fs.writeFileSync(ENERGY_FILE, JSON.stringify({ energy }, null, 2));
+  try {
+    fs.writeFileSync(ENERGY_FILE, JSON.stringify({ energy }, null, 2));
+  } catch (error) {
+    console.error('Error writing energy data:', error);
+  }
 };
 const writecalendar = (calendar) => {
-  fs.writeFileSync(calendar_file, JSON.stringify(calendar, null, 2));
+  try {
+    fs.writeFileSync(calendar_file, JSON.stringify(calendar, null, 2));
+  } catch (error) {
+    console.error('Error writing calendar data:', error);
+  }
 };
 const writedeepwork = (deepwork) => {
-  fs.writeFileSync(deepwork_file, JSON.stringify(deepwork, null, 2));
+  try {
+    fs.writeFileSync(deepwork_file, JSON.stringify(deepwork, null, 2));
+  } catch (error) {
+    console.error('Error writing deepwork data:', error);
+  }
 };
 const writedashboard = (dashboard) => {
-  fs.writeFileSync(dashboard_file, JSON.stringify(dashboard, null, 2));
+  try {
+    fs.writeFileSync(dashboard_file, JSON.stringify(dashboard, null, 2));
+  } catch (error) {
+    console.error('Error writing dashboard data:', error);
+  }
 };
 const verifyUsernameSession = async (req, res, next) => {
   if (!req.session?.userid) {
@@ -326,8 +354,16 @@ You MUST return your response strictly as a JSON object matching the following s
 
   // All models failed
   console.error("All models failed. Last error:", lastError);
+  let errorMsg = lastError ? (lastError.text || lastError.message || JSON.stringify(lastError)) : 'unknown';
+  
+  if (errorMsg.includes("RESOURCE_EXHAUSTED") || errorMsg.includes("quota") || errorMsg.includes("429")) {
+    errorMsg = "My AI processing core is currently rate-limited (Gemini API quota exceeded). Please wait a few seconds before trying again, or upgrade your key plan in Google AI Studio.";
+  } else {
+    errorMsg = `I could not resolve an active model on your API key. (Last error: ${errorMsg})`;
+  }
+
   return { 
-    reply: `I could not resolve an active model on your API key. (Last error: ${lastError ? (lastError.text || lastError.message || JSON.stringify(lastError)) : 'unknown'})`, 
+    reply: errorMsg, 
     action: null 
   };
 }
